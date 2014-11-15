@@ -1,0 +1,115 @@
+<html>
+  <head>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: black;
+    }
+
+    #gameboard {
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+  </head>
+  <body>
+    <canvas id="gameboard">
+    </canvas>
+    <script>
+      var GRID_ROWS = 100;
+      var GRID_COLS = 180;
+
+      var can = document.getElementById("gameboard");
+      var cw = can.width = can.offsetWidth;
+      var ch = can.height = can.offsetHeight;
+
+      var ctx = can.getContext('2d');
+
+      var grid = [];
+      for(var i = 0; i < GRID_ROWS; i++) {
+        var row = [];
+        for(var j = 0; j < GRID_COLS; j++) {
+          var value = Math.random() > 0.6 ? 0 : 1;
+
+          row.push(value);
+          // row.push(0);
+        }
+        grid.push(row);
+      }
+
+      grid[3][4] = 1;
+      grid[3][5] = 1;
+      grid[3][6] = 1;
+
+      function buildNewWorld() {
+        var newGrid = [];
+        for (var i = 0; i < GRID_ROWS; i++) {
+          var newRow = [];
+          for (var j = 0; j < GRID_COLS; j++) {
+            newRow.push(nextState(j, i));
+          }
+          newGrid.push(newRow);
+        }
+        grid = newGrid;
+      }
+
+      function nextState(x, y) {
+        var cell = grid[y][x];
+        var liveCount = liveNeighbors(x, y);
+
+        if (cell && (liveCount == 2 || liveCount == 3)) {
+          return 1;
+        } else if (cell) {
+          return 0;
+        } else if (!cell && liveCount === 3) {
+          return 1;
+        } else {
+          return 0;
+        }
+      }
+
+      function liveNeighbors(x, y) {
+        return neighbors(x, y).filter(function(cell) {
+          return cell;
+        }).length;
+      }
+
+      function neighbors(x, y) {
+        var cells = [[x-1, y-1],[x, y-1],[x+1, y-1],
+                     [x-1, y  ],         [x+1, y  ],
+                     [x-1, y+1],[x, y+1],[x+1, y+1]];
+        return cells.map(function(coords) {
+          if (coords[0] < 0 || coords[1] < 0) {
+            return 0;
+          } else if (coords[0] >= GRID_COLS || coords[1] >= GRID_ROWS) {
+            return 0;
+          } else {
+            return grid[coords[1]][coords[0]];
+          }
+        });
+      }
+
+      function render() {
+        var BLOCK_WIDTH = cw/GRID_COLS;
+        var BLOCK_HEIGHT = ch/GRID_ROWS;
+
+        for(var i = 0; i < GRID_ROWS; i++) {
+          for(var j = 0; j < GRID_COLS; j++) {
+            var on = grid[i][j];
+            ctx.fillStyle = on ? '#fff' : '#000';
+            ctx.fillRect(j*BLOCK_WIDTH, i*BLOCK_HEIGHT, BLOCK_WIDTH, BLOCK_HEIGHT);
+          }
+        }
+      }
+
+      function run() {
+        buildNewWorld();
+        render();
+      }
+      setInterval(run, 80);
+
+      </script>
+    <!-- <script src="js/main.js"></script> -->
+  </body>
+</html>
